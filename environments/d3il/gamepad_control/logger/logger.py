@@ -77,6 +77,19 @@ class Logger:
         env_state["robot"]["des_j_vel"] = robot_logger.des_joint_vel
         env_state["robot"]["des_j_acc"] = robot_logger.des_joint_acc
         env_state["robot"]["gripper_width"] = robot_logger.gripper_width
+                # "j_pos": robot.current_j_pos,
+                # "j_vel": robot.current_j_vel,
+                # "des_j_pos": robot.des_joint_pos,
+                # "des_j_vel": robot.des_joint_vel,
+                # "des_j_acc": robot.des_joint_acc,
+                # "c_pos": robot.current_c_pos,
+                # "c_quat": robot.current_c_quat,
+                # "c_vel": robot.current_c_vel,
+                # "des_c_pos": robot.des_c_pos,
+                # "des_c_vel": robot.des_c_vel,
+                # "des_c_quat": robot.des_quat,
+                # "des_quat_vel": robot.des_quat_vel,
+                # "gripper_width": np.array([robot.gripper_width]),
 
         for log_name, logger in self.cam_loggers.items():
             env_state[log_name] = {}

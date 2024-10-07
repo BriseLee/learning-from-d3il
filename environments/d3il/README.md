@@ -78,5 +78,4 @@ blocks. Therefore, you should create such a manager to manage your objects for n
   - `get_reward()` which calculates a reward (only for RL, not needed for IL)
   - `_check_early_termination()` which checks if a condition is satisfied for an early termination
   - `_reset_env()` which resets the environment to an initial state
-- Given a policy, the `check_mode` function defines which mode it is currently executing. If you define 
-a multi-modal task, you need to know how many modes/solutions there.
+- Given a policy, the `check_mode` function defines which mode it is currently executing. If you define a multi-modal task, you need to know how many modes/solutions there.+

@@ -53,9 +53,9 @@ class BlockContextManager:
         self.red_box_space = Box(
             low=np.array([0.4, -0.15, -90]), high=np.array([0.5, 0, 90])#, seed=seed
         )
-        self.green_box_space = Box(
-            low=np.array([0.55, -0.15, -90]), high=np.array([0.65, 0, 90])#, seed=seed
-        )
+        # self.green_box_space = Box(
+        #     low=np.array([0.55, -0.15, -90]), high=np.array([0.65, 0, 90])#, seed=seed
+        # )
 
         # self.deg_list = np.random.random_sample(60) * 180 - 90
         # self.x1_list = np.random.random_sample(30) * 0.1 + 0.4
@@ -86,19 +86,19 @@ class BlockContextManager:
     def sample(self):
 
         red_pos = self.red_box_space.sample()
-        green_pos = self.green_box_space.sample()
+        # green_pos = self.green_box_space.sample()
 
         goal_angle = [0, 0, red_pos[-1] * np.pi / 180]
         quat = euler2quat(goal_angle)
 
-        goal_angle2 = [0, 0, green_pos[-1] * np.pi / 180]
-        quat2 = euler2quat(goal_angle2)
+        # goal_angle2 = [0, 0, green_pos[-1] * np.pi / 180]
+        # quat2 = euler2quat(goal_angle2)
 
-        return [red_pos, quat, green_pos, quat2]
-
+        return [red_pos, quat]
+    
     def set_context(self, context):
 
-        red_pos, quat, green_pos, quat2 = context
+        red_pos, quat = context
 
         self.scene.set_obj_pos_and_quat(
             [red_pos[0], red_pos[1], 0.00],
@@ -106,11 +106,11 @@ class BlockContextManager:
             obj_name="push_box",
         )
 
-        self.scene.set_obj_pos_and_quat(
-            [green_pos[0], green_pos[1], 0.00],
-            quat2,
-            obj_name="push_box2",
-        )
+        # self.scene.set_obj_pos_and_quat(
+        #     [green_pos[0], green_pos[1], 0.00],
+        #     quat2,
+        #     obj_name="push_box2",
+        # )
         # print(
         #     "Set Context red_pos: {}, quat_r: {}, green_pos: {}, quat_g: {}".format(
         #         red_pos, quat, green_pos, quat2
@@ -120,7 +120,7 @@ class BlockContextManager:
     def random_context(self):
 
         red_pos = self.red_box_space.sample()
-        green_pos = self.green_box_space.sample()
+        # green_pos = self.green_box_space.sample()
 
         goal_angle = [0, 0, red_pos[-1] * np.pi / 180]
         quat = euler2quat(goal_angle)
@@ -131,13 +131,13 @@ class BlockContextManager:
             obj_name="push_box",
         )
 
-        goal_angle2 = [0, 0, green_pos[-1] * np.pi / 180]
-        quat2 = euler2quat(goal_angle2)
-        self.scene.set_obj_pos_and_quat(
-            [green_pos[0], green_pos[1], 0.00],
-            quat2,
-            obj_name="push_box2",
-        )
+        # goal_angle2 = [0, 0, green_pos[-1] * np.pi / 180]
+        # quat2 = euler2quat(goal_angle2)
+        # self.scene.set_obj_pos_and_quat(
+        #     [green_pos[0], green_pos[1], 0.00],
+        #     quat2,
+        #     obj_name="push_box2",
+        # )
 
         return red_pos, quat, green_pos, quat2
 
