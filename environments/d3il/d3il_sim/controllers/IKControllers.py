@@ -153,14 +153,17 @@ class CartPosQuatImpedenceController(
         self.desired_c_pos = np.array([0.624, 0, 0.55])
         self.desired_quat = np.array([0.0, 0.984, 0, 0.177])
         self.desired_quat = self.desired_quat / np.linalg.norm(self.desired_quat)
+        
         self.desired_c_vel = np.zeros((3,))
         self.desired_quat_vel = np.zeros((4,))
+        
 
         self.old_des_joint_vel = np.zeros((7,))
         self.old_q = np.zeros((7,))
         self.old_q[:] = np.nan
 
     def getControl(self, robot):
+        
 
         self.paramsLock.acquire()
         super(CartPosQuatImpedenceController, self).getControl(robot)
@@ -184,6 +187,10 @@ class CartPosQuatImpedenceController(
         target_cpos_acc = self.desired_c_pos - current_c_pos
 
         curr_quat = current_c_quat
+        print(f"Shape of curr_quat: {curr_quat.shape}")
+        
+        print(f"Shape of desired_quat: {self.desired_quat.shape}")
+
 
         if np.linalg.norm(curr_quat - self.desired_quat) > np.linalg.norm(
             curr_quat + self.desired_quat

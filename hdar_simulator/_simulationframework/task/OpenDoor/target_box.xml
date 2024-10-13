@@ -1,0 +1,7 @@
+<mujoco model="target_box">
+    <worldbody>
+        <body name="target_box" pos="0 0.53 0.25" quat="1 0 0 0">
+        </body>
+
+    </worldbody>
+</mujoco>

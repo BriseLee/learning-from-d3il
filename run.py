@@ -27,7 +27,7 @@ def set_seed_everywhere(seed):
     random.seed(seed)
 
 
-@hydra.main(config_path="configs", config_name="avoiding_config.yaml")
+@hydra.main(config_path="configs", config_name="picking_config.yaml")
 def main(cfg: DictConfig) -> None:
 
     # if cfg.seed in [0, 1]:
@@ -56,6 +56,9 @@ def main(cfg: DictConfig) -> None:
 
     # load the model performs best on the evaluation set
     agent.load_pretrained_model(agent.working_dir, sv_name=agent.eval_model_name)
+    
+    # agent.load_pretrained_model("/home/xueyinli/project/d3il/logs/picking/runs/bc/2024-10-11/20-19-36", 
+                                # sv_name="last_bc.pth")
 
     # simulate the model
     env_sim = hydra.utils.instantiate(cfg.simulation)

@@ -8,7 +8,7 @@ init_end_eff_pos = [0.525, -0.28, 0.12]
 box_pos = np.array([0.0, 0.0, 0.01])
 # box_pos2 = np.array([0.5, -0.3, -0.0072])
 
-target_pos = [-0.1, 0.0, -0.005]
+target_pos = [0.2, 0.6, -0.005]
 target_quat = [0, 1, 0, 0]
 
 # target_pos2 = [0.63, 0.3, 0]

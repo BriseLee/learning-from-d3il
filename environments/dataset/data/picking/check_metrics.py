@@ -40,7 +40,7 @@ for file in file_lists:
     red_box_quat = arr['red-box']['quat']
 
     green_target_pos = arr['green-target']['pos'][-1, :2]
-#???
+#
     pos_diff.append(min(np.linalg.norm(red_box_pos-green_target_pos), np.linalg.norm(red_box_pos-green_target_pos)))
     
 lengths = np.array(lengths)

@@ -48,7 +48,7 @@ class Picking_Dataset(TrajectoryDataset):
         # data_dir = sim_framework_path(data_directory)
         # state_files = glob.glob(data_dir + "/env*")
 
-        bp_data_dir = sim_framework_path("environments/dataset/data/picking/all_data")
+        bp_data_dir = sim_framework_path("environments/dataset/data/picking/pick_data/feedback_withoutforce/state/")
 
         state_files = np.load(sim_framework_path(data_directory), allow_pickle=True)
 
@@ -62,25 +62,37 @@ class Picking_Dataset(TrajectoryDataset):
             zero_action = np.zeros((1, self.max_len_data, self.action_dim), dtype=np.float32)
             zero_mask = np.zeros((1, self.max_len_data), dtype=np.float32)
 
+            # print(f"aaaaaaa{env_state}")  # 输出 env_state 的内容
+
+
             # robot and box positions
-            robot_des_j_pos = env_state['robot']['des_j_pos']
-            robot_des_pos = env_state['robot']['des_c_pos'][:, :2]
-            robot_c_pos = env_state['robot']['c_pos'][:, :2]
-            robot_gripper = np.expand_dims(env_state['robot']['gripper_width'], -1)
+            robot = "panda_robot"
+            robot_des_j_pos = env_state['state'][robot]['des_j_pos']
+            print(f"des_pos:{robot_des_j_pos}")
+            
+            robot_gripper = np.expand_dims(env_state['state'][robot]['gripper_width'], -1)
+            robot_gripper = robot_gripper[:, 0, :]
+            print(f"gripper:{robot_gripper}")
 
-            red_box_pos = env_state['red-box']['pos'][:, :2]
-            red_box_quat = np.tan(quat2euler(env_state['red-box']['quat'])[:, -1:])
+            red_box_pos = env_state['state']['picked_box']['pos']
+            red_box_quat = np.tan(quat2euler(env_state['state']['picked_box']['quat'])[:, -1:])
 
-            # green_target_pos = env_state['green-target']['pos'][:, :2]
-
-            input_state = np.concatenate((robot_des_j_pos, robot_gripper, red_box_pos, red_box_quat), axis=-1)
+            green_target_pos = env_state['state']['target_box']['pos']
+            green_target_quat= np.tan(quat2euler(env_state['state']['target_box']['quat'])[:, -1:])
+            
+            input_state = np.concatenate((robot_des_j_pos, robot_gripper, red_box_pos, red_box_quat,green_target_pos,green_target_quat), axis=-1)
+            # print(f"input_state shape: {input_state.shape}") 
+            # print(f"zero_obs shape: {zero_obs.shape}")       
 
             vel_state = robot_des_j_pos[1:] - robot_des_j_pos[:-1]
-
             valid_len = len(input_state) - 1
+            # print(f"valid :{valid_len}")
+            # print("vel_state shape:",  zero_obs[0, :valid_len, :12].shape)          # vel_state 的形状
+            # print("INPUT shape:", input_state[:-1].shape)  # robot_gripper[1:] 的形状
+
 
             zero_obs[0, :valid_len, :] = input_state[:-1]
-            zero_action[0, :valid_len, :] = vel_state
+            zero_action[0, :valid_len, :] = np.concatenate((vel_state, robot_gripper[1:]), axis=-1)
             zero_mask[0, :valid_len] = 1
 
             inputs.append(zero_obs)

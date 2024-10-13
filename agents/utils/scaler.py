@@ -79,6 +79,10 @@ class Scaler:
             return x.to(self.device)
         else:
             x = x.to(self.device)
+            # print(f"x shape: {x.shape}")               # 应该显示 (batch_size, some_dim1, 8)
+            # print(f"x_mean shape: {self.x_mean.shape}")  # 应该显示 (some_dim1, 8)
+            # print(f"x_std shape: {self.x_std.shape}")    # 应该显示 (some_dim1, 12)
+
             if self.scale_data:
                 out = (x - self.x_mean) / (self.x_std + 1e-12 * torch.ones((self.x_std.shape), device=self.device))
                 return out.to(torch.float32)

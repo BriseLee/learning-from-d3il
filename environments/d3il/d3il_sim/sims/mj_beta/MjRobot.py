@@ -123,6 +123,7 @@ class MjRobot(RobotBase, MjIncludeTemplate):
         return cart_pos, cart_or
 
     def prepare_step(self):
+        
         self.command = self.activeController.getControl(self)
 
         self.preprocessCommand(self.command)

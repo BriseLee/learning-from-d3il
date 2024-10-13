@@ -133,6 +133,7 @@ class GymCartesianVelController(GymController):
             desired_quat = np.array(action[3:])
         else:
             desired_quat = self.fixed_orientation
+        print(f"we get desired_quat : {desired_quat}")
 
         self.controller.setDesiredPos(
             np.concatenate([self.desired_c_pos, desired_quat])

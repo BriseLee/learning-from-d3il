@@ -3,6 +3,11 @@ import copy
 import time
 
 import sys
+import sys
+import os
+
+sys.path.append(os.path.abspath('/home/xueyinli/project/d3il'))
+
 
 from gym.spaces import Box
 
@@ -152,8 +157,8 @@ class Block_Pick_Env(GymEnvWrapper):
             scene,
             xml_path=d3il_path("./models/mj/robot/panda_invisible.xml"),
         )
-        controller = robot.cartesianPosQuatTrackingController
-        # controller = robot.jointTrackingController
+        # controller = robot.cartesianPosQuatTrackingController
+        controller = robot.jointTrackingController
         # controller = GymCartesianVelController(robot, fixed_orientation=[0,1,0,0])
 
         super().__init__(
@@ -195,8 +200,8 @@ class Block_Pick_Env(GymEnvWrapper):
         self.scene.add_object(self.bp_cam)
 
         self.log_dict = {
-            "red-box": ObjectLogger(scene, self.picked_box),
-            "green-target": ObjectLogger(scene, self.target_box),
+            "picked_box": ObjectLogger(scene, self.picked_box),
+            "target_box": ObjectLogger(scene, self.target_box),
         }
 
         self.cam_dict = {
@@ -213,41 +218,48 @@ class Block_Pick_Env(GymEnvWrapper):
         self.target_min_dist = 0.02
         self.bp_mode = None
         self.first_visit = -1
+        self.mode_encoding = []
     
-    # def robot_state(self):
-    #     # Update Robot State
-    #     self.robot.receiveState()
+    def robot_state(self):
+        # Update Robot State
+        self.robot.receiveState()
 
-    #     # joint state
-    #     joint_pos = self.robot.current_j_pos
-    #     joint_vel = self.robot.current_j_vel
-    #     gripper_width = np.array([self.robot.gripper_width])
+        # joint state
+        joint_pos = self.robot.current_j_pos
+        joint_vel = self.robot.current_j_vel
+        gripper_width = np.array([self.robot.gripper_width])
 
-    #     tcp_pos = self.robot.current_c_pos
-    #     tcp_quad = self.robot.current_c_quat
+        tcp_pos = self.robot.current_c_pos
+        tcp_quad = self.robot.current_c_quat
 
-    #     return np.concatenate((joint_pos, gripper_width)), joint_pos, tcp_quad
-    #     # return np.concatenate((tcp_pos, tcp_quad, gripper_width))
+        return np.concatenate((joint_pos, gripper_width))
+        # return np.concatenate((tcp_pos, tcp_quad, gripper_width))
 
 
     def get_observation(self) -> np.ndarray:
 
         robot_pos = self.robot_state()[:2]
+        gripper_width = np.array([self.robot.gripper_width])
 
-        box_1_pos = self.scene.get_obj_pos(self.picked_box)[:2]  # - robot_pos
-        box_1_quat = np.tan(quat2euler(self.scene.get_obj_quat(self.picked_box))[-1:])
+        picked_box_pos = self.scene.get_obj_pos(self.picked_box)  # - robot_pos
+        picked_box_quat = np.tan(quat2euler(self.scene.get_obj_quat(self.picked_box))[-1:])
 
         # box_2_pos = self.scene.get_obj_pos(self.push_box2)[:2]  # - robot_pos
         # box_2_quat = np.tan(quat2euler(self.scene.get_obj_quat(self.push_box2))[-1:])
 
         # goal_1_pos = self.scene.get_obj_pos(self.target_box_1)[:2]  # - robot_pos
         # goal_2_pos = self.scene.get_obj_pos(self.target_box_2)[:2]  # - robot_pos
+        target_pos = self.scene.get_obj_pos(self.target_box) #- robot_c_pos
+        target_quat = np.tan(quat2euler(self.scene.get_obj_quat(self.target_box))[-1:])
 
         env_state = np.concatenate(
             [
-                robot_pos,
-                box_1_pos,
-                box_1_quat,
+                # robot_pos,
+                gripper_width,
+                picked_box_pos,
+                picked_box_quat,
+                target_pos,
+                target_quat,
 
                 # goal_1_pos,
                 # goal_2_pos,
@@ -310,45 +322,118 @@ class Block_Pick_Env(GymEnvWrapper):
         )
 
     def step(self, action, gripper_width=None, desired_vel=None, desired_acc=None):
-        observation, reward, done, _ = super().step(action, gripper_width, desired_vel=desired_vel, desired_acc=desired_acc)
+        # observation, reward, done, _ = super().step(action, gripper_width, desired_vel=desired_vel, desired_acc=desired_acc)
+        # self.success = self._check_early_termination()
+        # mode, mean_distance = self.check_mode()
+        j_pos = action[:7]
+        # j_vel = action[7:14]
+        gripper_width = action[-1]
+
+        if gripper_width > 0.075:
+
+            self.robot.open_fingers()
+
+            # if self.gripper_flag == 0:
+            #     print(0)
+            #     self.robot.open_fingers()
+            #     self.gripper_flag = 1
+        else:
+            self.robot.close_fingers(duration=0.0)
+            # if self.gripper_flag == 1:
+            #
+            #     print(1)
+            #     self.robot.close_fingers(duration=0.5)
+            #     print(self.robot.set_gripper_width)
+            #
+            #     self.gripper_flag = 0
+
+        # self.robot.set_gripper_width = gripper_width
+
+        # c_pos, c_quat = self.robot.getForwardKinematics(action)
+        # c_action = np.concatenate((c_pos, c_quat))
+
+        # c_pos = action[:3]
+        # c_quat = euler2quat(action[3:6])
+        # c_action = np.concatenate((c_pos, c_quat))
+
+        self.controller.setSetPoint(action[:-1])#, desired_vel=desired_vel, desired_acc=desired_acc)
+        # self.controller.setSetPoint(action)#, desired_vel=j_vel, desired_acc=desired_acc)
+        self.controller.executeControllerTimeSteps(
+            self.robot, self.n_substeps, block=False
+        )
+
+        observation = self.get_observation()
+        reward = self.get_reward()
+        done = self.is_finished()
+
+        for i in range(self.n_substeps):
+            self.scene.next_step()
+
+        debug_info = {}
+        if self.debug:
+            debug_info = self.debug_msg()
+
+        self.env_step_counter += 1
+
         self.success = self._check_early_termination()
-        mode, mean_distance = self.check_mode()
+        mode_encoding, mean_distance = self.check_mode()
+
+        mode = ''
+        # print(f"Type of mode_encoding: {type(mode_encoding)}")
+        mode = mode.join(mode_encoding)
+        
+
         return observation, reward, done, {'mode': mode, 'success':  self.success, 'mean_distance': mean_distance}
 
-    def check_mode(self):
-        box_1_pos = self.scene.get_obj_pos(self.picked_box)
+    # def check_mode(self):
+    #     box_1_pos = self.scene.get_obj_pos(self.picked_box)
     
-        goal_1_pos = self.scene.get_obj_pos(self.target_box)
+    #     goal_1_pos = self.scene.get_obj_pos(self.target_box)
  
 
-        dis_rr, _ = obj_distance(box_1_pos, goal_1_pos)
-        visit = -1
-        mode = -1
+    #     dis_rr, _ = obj_distance(box_1_pos, goal_1_pos)
+    #     visit = -1
+    #     mode = -1
 
-        if dis_rr <= self.target_min_dist and self.first_visit != 0:
-            visit = 0
-        # elif dis_rg <= self.target_min_dist and self.first_visit != 1:
-        #     visit = 1
-        # elif dis_gr <= self.target_min_dist and self.first_visit != 2:
-        #     visit = 2
-        # elif dis_gg <= self.target_min_dist and self.first_visit != 3:
-        #     visit = 3
+    #     if dis_rr <= self.target_min_dist and self.first_visit != 0:
+    #         visit = 0
+    #     # elif dis_rg <= self.target_min_dist and self.first_visit != 1:
+    #     #     visit = 1
+    #     # elif dis_gr <= self.target_min_dist and self.first_visit != 2:
+    #     #     visit = 2
+    #     # elif dis_gg <= self.target_min_dist and self.first_visit != 3:
+    #     #     visit = 3
 
-        if self.first_visit == -1:
-            self.first_visit = visit
-        # else:
-        #     if self.first_visit == 0 and visit == 3:
-        #         mode = 0  # rr -> gg
-        #     elif self.first_visit == 3 and visit == 0:
-        #         mode = 1  # gg -> rr
-        #     elif self.first_visit == 1 and visit == 2:
-        #         mode = 2  # rg -> gr
-        #     elif self.first_visit == 2 and visit == 1:
-        #         mode = 3  # gr -> rg
+    #     if self.first_visit == -1:
+    #         self.first_visit = visit
+    #     # else:
+    #     #     if self.first_visit == 0 and visit == 3:
+    #     #         mode = 0  # rr -> gg
+    #     #     elif self.first_visit == 3 and visit == 0:
+    #     #         mode = 1  # gg -> rr
+    #     #     elif self.first_visit == 1 and visit == 2:
+    #     #         mode = 2  # rg -> gr
+    #     #     elif self.first_visit == 2 and visit == 1:
+    #     #         mode = 3  # gr -> rg
 
-        mean_distance = dis_rr
+    #     mean_distance = dis_rr
 
-        return mode, mean_distance
+    #     return mode, mean_distance
+    def check_mode(self):
+        # 获取盒子和目标的位置
+        red_box_pos = self.scene.get_obj_pos(self.picked_box)[:2]  # 假设你只有一个 box
+        target_pos = self.scene.get_obj_pos(self.target_box)[:2]
+
+        # 计算盒子与目标之间的距离
+        dist = np.linalg.norm(red_box_pos - target_pos)
+        
+        # 判断距离是否小于阈值
+        if dist <= self.target_min_dist:
+            self.mode_encoding.append('red-box')  
+            self.min_inds.append(0)  
+
+        return self.mode_encoding, dist
+
 
     def get_reward(self, if_sparse=False):
         return 0
@@ -418,12 +503,12 @@ class Block_Pick_Env(GymEnvWrapper):
         goal_1_pos = self.scene.get_obj_pos(self.target_box)
         # goal_2_pos = self.scene.get_obj_pos(self.target_box_2)
 
-        dis_rr, _ = obj_distance(box_1_pos, goal_1_pos)
+        dis, _ = obj_distance(box_1_pos, goal_1_pos)
         # dis_rg, _ = obj_distance(box_1_pos, goal_2_pos)
         # dis_gr, _ = obj_distance(box_2_pos, goal_1_pos)
         # dis_gg, _ = obj_distance(box_2_pos, goal_2_pos)
 
-        if dis_rr <= self.target_min_dist:
+        if dis <= self.target_min_dist:
             # terminate if end effector is close enough
             self.terminated = True
             return True

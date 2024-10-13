@@ -59,6 +59,8 @@ class Avoiding_Sim(BaseSim):
             while not done:
 
                 obs = np.concatenate((pred_action[:2], obs))
+                print(f"pred_action shape: {pred_action.shape}")
+                print(f"obs shape: {obs.shape}")   
 
                 pred_action = agent.predict(obs)
                 pred_action = pred_action[0] + obs[:2]

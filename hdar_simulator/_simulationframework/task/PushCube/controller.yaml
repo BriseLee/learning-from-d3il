@@ -1,0 +1,9 @@
+meta_quest3:
+  hand: right
+  fix_rotation: False
+  fix_z: False
+  with_gripper: True
+
+real_robot:
+  ip: 127.0.0.1
+  port: 1024

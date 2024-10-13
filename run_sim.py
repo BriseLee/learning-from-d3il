@@ -19,7 +19,7 @@ OmegaConf.register_new_resolver(
 torch.cuda.empty_cache()
 
 
-@hydra.main(config_path="configs", config_name="avoiding_config.yaml")
+@hydra.main(config_path="configs", config_name="picking_config")
 def main(cfg: DictConfig) -> None:
 
     np.random.seed(cfg.seed)

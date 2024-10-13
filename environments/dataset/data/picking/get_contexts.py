@@ -31,11 +31,18 @@ file_lists = np.load("train_files.pkl", allow_pickle=True)
 
 train_contexts = []
 
+# for file in file_lists[:60]:
+
+#     arr = np.load("all_data/" + file, allow_pickle=True,)
+
+#     train_contexts.append(arr["context"])
 for file in file_lists[:60]:
-
-    arr = np.load("all_data/" + file, allow_pickle=True,)
-
-    train_contexts.append(arr["context"])
+    file_path = "all_data/" + file
+    if os.path.exists(file_path):
+        arr = np.load(file_path, allow_pickle=True)
+        train_contexts.append(arr["context"])
+    else:
+        print(f"File not found: {file_path}")
 
 with open("train_contexts.pkl", "wb") as f:
     pickle.dump(train_contexts, f)
