@@ -55,7 +55,11 @@ obs_dim: 16  #7+1+2*4
 action_dim: 8
 max_len_data: 1000
 window_size: 5
-
+shape_meta: &shape_meta
+  robot_feature:
+    shape: [8] # robot_des_j_pos, robot_gripper
+  obj_feature:
+    shape: [8] # box_pos, box_quat_axis_z,target_pos,target_quat_axis_z
 # Dataset
 trainset:
   _target_: environments.dataset.picking_dataset.Picking_Dataset
@@ -81,4 +85,4 @@ simulation:
   render: True
   n_cores: 1
   n_contexts: 1
-  n_trajectories_per_context: 25
+  n_trajectories_per_context: 2

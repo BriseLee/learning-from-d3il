@@ -2,10 +2,9 @@ import os
 import numpy as np
 import random
 import pickle
-
-file_lists = os.listdir("all_data")
-
-random.shuffle(file_lists)
+all_data = os.listdir("/home/xueyinli/project/d3il/environments/dataset/data/picking/pick_data/feedback_withoutforce/state")
+# file_lists = os.listdir("all_data")
+random.shuffle(all_data)
 
 
 def rotation_distance(p: np.array, q: np.array):
@@ -30,16 +29,17 @@ lengths = []
 
 # file_lists = np.load("train_files.pkl", allow_pickle=True)
 
-for file in file_lists:
+for file in all_data:
 
-    arr = np.load("all_data/" + file, allow_pickle=True,)
+    # arr = np.load("/home/xueyinli/project/d3il/environments/dataset/data/picking/pick_data/feedback_withoutforce/state/" + file, allow_pickle=True,)
+    with open("/home/xueyinli/project/d3il/environments/dataset/data/picking/pick_data/feedback_withoutforce/state/PickandPlaceBox_096.pkl", "rb") as f:
+        arr = np.load(f)
+    lengths.append(len(arr['panda_robot']['des_j__pos']))
 
-    lengths.append(len(arr['robot']['c_pos']))
+    red_box_pos = arr['picked_box']['pos'][-1, :2]
+    red_box_quat = arr['picked_box']['quat']
 
-    red_box_pos = arr['red-box']['pos'][-1, :2]
-    red_box_quat = arr['red-box']['quat']
-
-    green_target_pos = arr['green-target']['pos'][-1, :2]
+    green_target_pos = arr['target_box']['pos'][-1, :2]
 #
     pos_diff.append(min(np.linalg.norm(red_box_pos-green_target_pos), np.linalg.norm(red_box_pos-green_target_pos)))
     

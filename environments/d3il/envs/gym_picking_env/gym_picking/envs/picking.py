@@ -23,8 +23,8 @@ from environments.d3il.d3il_sim.sims.mj_beta.MjFactory import MjFactory
 from environments.d3il.d3il_sim.sims import MjCamera
 
 from .objects.picking_objects import get_obj_list, init_end_eff_pos
-
-obj_list, picked_box, target_box = get_obj_list()
+obj_list = get_obj_list()
+# picked_box, target_box = get_obj_list()
 
 
 class BPCageCam(MjCamera):
@@ -56,7 +56,10 @@ class BlockContextManager:
         np.random.seed(seed)
 
         self.red_box_space = Box(
-            low=np.array([0.4, -0.15, -90]), high=np.array([0.5, 0, 90])#, seed=seed
+            low=np.array([0.4, -0.5, -90]), high=np.array([0.5, 0.5, 90])#, seed=seed
+        )
+        self.target_space = Box(
+            low=np.array([0.4, -0.25, -90]), high=np.array([0.6, 0.25, 90])  # , seed=seed
         )
        
         self.index = index
@@ -67,33 +70,53 @@ class BlockContextManager:
             self.context = self.sample()
         else:
             self.context = context
-
+        self.context = self.sample()
         self.set_context(self.context)
 
     def sample(self):
 
-        red_pos = self.red_box_space.sample()
-        goal_angle = [0, 0, red_pos[-1] * np.pi / 180]
-        quat = euler2quat(goal_angle)
+        picked_box_pos = self.red_box_space.sample()
+        pick_angle = [0, 0, picked_box_pos[-1] * np.pi / 180]
+        picked_box_quat = euler2quat(pick_angle)
+        print(f"picked pos:{picked_box_pos} qua is:{picked_box_quat}")
 
-        contexts = [red_pos, quat]
+        target_box_pos = self.target_space.sample()
+        target_angle = [0, 0, target_box_pos[-1] * np.pi / 180]
+        target_box_quat = euler2quat(target_angle)
+        print(f"target pos:{target_box_pos} qua is:{target_box_quat}")
 
-        return contexts
+        context=(
+            [picked_box_pos, picked_box_quat],
+            [target_box_pos,target_box_quat],
+        )
+
+        
+
+        return context
 
     def set_context(self, context):
-
-        red_pos, quat = context
-        goal_angle = [0, 0, red_pos[-1] * np.pi / 180]
-        quat = euler2quat(goal_angle)
+        picked_pos = context[0][0]
+        picked_quat = context[0][1]
+        print(f"context{context},picked{picked_pos} p_q is:{picked_quat}")
+        target_pos = context[1][0]
+        target_quat = context[1][1]
+        print(f"target{target_pos } t_q is:{target_quat}")
+       
+        
 
         self.scene.set_obj_pos_and_quat(
-            [red_pos[0], red_pos[1], 0.0],
-            quat,
+            [picked_pos[0], picked_pos[1], 0.0],
+            picked_quat,
             obj_name="picked_box",
         )
 
-        return red_pos, quat
+        self.scene.set_obj_pos_and_quat(
+            [target_pos[0], target_pos[1], 0.0],
+            target_quat,
+            obj_name="target_box",
+        )
 
+    
     # def random_context(self):
 
     #     red_pos = self.red_box_space.sample()
@@ -140,7 +163,7 @@ class Block_Pick_Env(GymEnvWrapper):
     def __init__(
         self,
         n_substeps: int = 35,
-        max_steps_per_episode: int = 400,
+        max_steps_per_episode: int = 5000,
         debug: bool = False,
         random_env: bool = False,
         interactive: bool = False,
@@ -183,21 +206,22 @@ class Block_Pick_Env(GymEnvWrapper):
 
         self.bp_cam = BPCageCam()
         self.inhand_cam = robot.inhand_cam
-
-        self.picked_box = picked_box
-        
-        self.target_box= target_box
-        
-
-        for obj in [
-            self.picked_box,
-            
-            self.target_box,
-          
-        ]:
-            self.scene.add_object(obj)
-
         self.scene.add_object(self.bp_cam)
+
+        self.picked_box = obj_list[0]
+        
+        self.target_box= obj_list[1]
+        
+
+        # for obj in [
+        #     self.picked_box,
+            
+        #     self.target_box,
+          
+        # ]:
+        #     self.scene.add_object(obj)
+
+        
 
         self.log_dict = {
             "picked_box": ObjectLogger(scene, self.picked_box),
@@ -209,15 +233,25 @@ class Block_Pick_Env(GymEnvWrapper):
             "inhand-cam": CamLogger(scene, self.inhand_cam)
         }
 
+        # for _, v in self.log_dict.items():
+        #     scene.add_logger(v)
+
+        # # for _, v in self.cam_dict.items():
+        # #     scene.add_logger(v)
+
+        # self.target_min_dist = 0.02
+        # self.bp_mode = None
+        # self.first_visit = -1
+        # self.mode_encoding = []
         for _, v in self.log_dict.items():
             scene.add_logger(v)
 
-        # for _, v in self.cam_dict.items():
-        #     scene.add_logger(v)
+        for _, v in self.cam_dict.items():
+            scene.add_logger(v)
 
-        self.target_min_dist = 0.02
-        self.bp_mode = None
-        self.first_visit = -1
+        self.target_min_dist = 0.01
+
+        self.min_inds = []
         self.mode_encoding = []
     
     def robot_state(self):
@@ -225,7 +259,7 @@ class Block_Pick_Env(GymEnvWrapper):
         self.robot.receiveState()
 
         # joint state
-        joint_pos = self.robot.current_j_pos
+        joint_pos = self.robot.des_joint_pos
         joint_vel = self.robot.current_j_vel
         gripper_width = np.array([self.robot.gripper_width])
 
@@ -238,23 +272,18 @@ class Block_Pick_Env(GymEnvWrapper):
 
     def get_observation(self) -> np.ndarray:
 
-        robot_pos = self.robot_state()[:2]
+        robot_pos = self.robot_state()[:7]
         gripper_width = np.array([self.robot.gripper_width])
 
         picked_box_pos = self.scene.get_obj_pos(self.picked_box)  # - robot_pos
         picked_box_quat = np.tan(quat2euler(self.scene.get_obj_quat(self.picked_box))[-1:])
 
-        # box_2_pos = self.scene.get_obj_pos(self.push_box2)[:2]  # - robot_pos
-        # box_2_quat = np.tan(quat2euler(self.scene.get_obj_quat(self.push_box2))[-1:])
-
-        # goal_1_pos = self.scene.get_obj_pos(self.target_box_1)[:2]  # - robot_pos
-        # goal_2_pos = self.scene.get_obj_pos(self.target_box_2)[:2]  # - robot_pos
         target_pos = self.scene.get_obj_pos(self.target_box) #- robot_c_pos
         target_quat = np.tan(quat2euler(self.scene.get_obj_quat(self.target_box))[-1:])
 
         env_state = np.concatenate(
             [
-                # robot_pos,
+                robot_pos,
                 gripper_width,
                 picked_box_pos,
                 picked_box_quat,
@@ -498,9 +527,9 @@ class Block_Pick_Env(GymEnvWrapper):
 
     def _check_early_termination(self) -> bool:
         # calculate the distance from end effector to object
-        box_1_pos = self.scene.get_obj_pos(self.picked_box)
+        box_1_pos = self.scene.get_obj_pos(self.picked_box)[:2]
         # box_2_pos = self.scene.get_obj_pos(self.push_box2)
-        goal_1_pos = self.scene.get_obj_pos(self.target_box)
+        goal_1_pos = self.scene.get_obj_pos(self.target_box)[:2]
         # goal_2_pos = self.scene.get_obj_pos(self.target_box_2)
 
         dis, _ = obj_distance(box_1_pos, goal_1_pos)
@@ -519,7 +548,9 @@ class Block_Pick_Env(GymEnvWrapper):
         self.terminated = False
         self.env_step_counter = 0
         self.episode += 1
-        self.first_visit = -1
+        # self.first_visit = -1
+        self.min_inds = []
+        self.mode_encoding = []
 
         self.bp_mode = None
         obs = self._reset_env(random=random, context=context)
@@ -539,7 +570,7 @@ class Block_Pick_Env(GymEnvWrapper):
         self.robot.beam_to_joint_pos(self.robot.init_qpos)
         self.robot.open_fingers()
 
-        self.manager.start(random=random, context=context)
+        self.manager.start(random=True, context=context)
         self.scene.next_step(log=False)
 
         observation = self.get_observation()

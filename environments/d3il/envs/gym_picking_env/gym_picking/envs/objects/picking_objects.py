@@ -6,9 +6,10 @@ init_end_eff_pos = [0.525, -0.28, 0.12]
 # init_end_eff_pos = [0.4, -0.5, 0.12]
 
 box_pos = np.array([0.0, 0.0, 0.01])
+box_quat = [0, 1, 0, 0]
 # box_pos2 = np.array([0.5, -0.3, -0.0072])
 
-target_pos = [0.2, 0.6, -0.005]
+target_pos = np.array([0.2, 0.6, -0.005])
 target_quat = [0, 1, 0, 0]
 
 # target_pos2 = [0.63, 0.3, 0]
@@ -18,10 +19,10 @@ target_quat = [0, 1, 0, 0]
 def get_obj_list():
     picked_box = Box(
         name="picked_box",
-        init_pos=box_pos,
-        init_quat=[0, 1, 0, 0],
+        init_pos = box_pos,
+        init_quat = box_quat,
         rgba=[1, 0, 0, 1.0],
-        mass=0.10,
+        mass=0.05,
         size=[0.03, 0.03, 0.05],
         # visual_only=True,
     )
@@ -61,9 +62,9 @@ def get_obj_list():
 
     # obj_list = [push_box1, push_box2, target_box_1, target_box_2]
 
-    obj_list = []
+    obj_list = [picked_box,  target_box]
 
-    return obj_list, picked_box,  target_box
+    return obj_list
 
     obj_list += [
         # TARGET

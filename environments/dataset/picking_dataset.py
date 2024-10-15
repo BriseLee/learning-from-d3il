@@ -67,12 +67,13 @@ class Picking_Dataset(TrajectoryDataset):
 
             # robot and box positions
             robot = "panda_robot"
-            robot_des_j_pos = env_state['state'][robot]['des_j_pos']
-            print(f"des_pos:{robot_des_j_pos}")
+            state_data = env_state["state"]
+            robot_des_j_pos = state_data[robot]['des_j_pos']
+            # print(f"des_pos:{robot_des_j_pos}")
             
-            robot_gripper = np.expand_dims(env_state['state'][robot]['gripper_width'], -1)
+            robot_gripper = np.expand_dims(state_data[robot]['gripper_width'], -1)
             robot_gripper = robot_gripper[:, 0, :]
-            print(f"gripper:{robot_gripper}")
+            # print(f"gripper:{robot_gripper}")
 
             red_box_pos = env_state['state']['picked_box']['pos']
             red_box_quat = np.tan(quat2euler(env_state['state']['picked_box']['quat'])[:, -1:])
@@ -85,7 +86,8 @@ class Picking_Dataset(TrajectoryDataset):
             # print(f"zero_obs shape: {zero_obs.shape}")       
 
             vel_state = robot_des_j_pos[1:] - robot_des_j_pos[:-1]
-            valid_len = len(input_state) - 1
+            # vel_state = (robot_des_j_pos[2:] - robot_des_j_pos[:-2]) / 2
+            valid_len = len(input_state)-1
             # print(f"valid :{valid_len}")
             # print("vel_state shape:",  zero_obs[0, :valid_len, :12].shape)          # vel_state 的形状
             # print("INPUT shape:", input_state[:-1].shape)  # robot_gripper[1:] 的形状

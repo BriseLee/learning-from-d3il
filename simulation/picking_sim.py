@@ -76,19 +76,17 @@ class Picking_Sim(BaseSim):
                 done = False
 
                 while not done:
-
-                    obs = np.concatenate((pred_action[:7], obs))
+                    # obs = np.concatenate((obs))
                     # print(f"pred_action shape: {pred_action.shape}")
                     # print(f"pred_action: {pred_action}")
                     # print(f"obs shape: {obs.shape}")
-                    # print(f"obs : {obs}")         
+                            
 
                     pred_action = agent.predict(obs)[0]
                     pred_action[:7] = pred_action[:7] + obs[:7]
 
                     # pred_action = agent.predict(obs)
                     # pred_action = pred_action[0] + obs[:2]
-
                     # pred_action = np.concatenate((pred_action, fixed_z, [0, 1, 0, 0]), axis=0)
 
                     obs, reward, done, info = env.step(pred_action)

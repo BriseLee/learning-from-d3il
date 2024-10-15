@@ -136,7 +136,7 @@ class PandaIKController(PandaPDController):
         super().__init__()
 
         urdf_path = os.path.join(
-            __file__, "/home/xinkai/project/HDAR-Simulator/model/panda_arm_hand_pinocchio.urdf"
+            __file__, "/home/xueyinLi/project/HDAR-Simulator/model/panda_arm_hand_pinocchio.urdf"
         )
         self.model = pin.buildModelFromUrdf(urdf_path)
         self.data = self.model.createData()
