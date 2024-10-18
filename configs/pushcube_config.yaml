@@ -43,7 +43,7 @@ eval_every_n_epochs: 1
 scale_data: True
 
 # Environment
-obs_dim: 21   
+obs_dim: 13   
 action_dim: 7
 max_len_data: 5000
 window_size: 1

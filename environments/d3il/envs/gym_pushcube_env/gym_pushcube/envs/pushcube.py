@@ -60,11 +60,11 @@ class BlockContextManager:
         np.random.seed(seed)
 
         self.box_space = Box(
-            low=np.array([0.4, -0.25, -90]), high=np.array([0.6, 0.25, 90])#, seed=seed
+            low=np.array([0.1, -0.25, -90]), high=np.array([0.1, 0.25, 90])#, seed=seed
         )
 
         self.target_space = Box(
-            low=np.array([0.4, -0.3, -90]), high=np.array([0.6, 0.35, 90])#, seed=seed
+            low=np.array([0.2, -0.3, -90]), high=np.array([0.2, 0.35, 90])#, seed=seed
         )
 
         # index = 0, push from inside
@@ -122,6 +122,12 @@ class BlockContextManager:
             obj_name="target_box",
         )
 
+        self.scene.set_obj_pos_and_quat(
+            [0, 0, 0],
+            [0, 0, 0, 1],
+            obj_name="platform_box",
+        )
+
     def set_index(self, index):
         self.index = index
 
@@ -176,6 +182,7 @@ class Push_Cube_Env(GymEnvWrapper):
 
         self.pushed_box = obj_list[0]
         self.target_box = obj_list[1]
+        self.platform = obj_list[2]
 
         self.scene.add_object(self.bp_cam)
 
@@ -231,11 +238,11 @@ class Push_Cube_Env(GymEnvWrapper):
 
             return joint_pos,bp_image, inhand_image
 
-        box_pos = self.scene.get_obj_pos(self.pushed_box)  # - robot_pos
-        box_quat = self.scene.get_obj_quat(self.pushed_box)
+        box_pos = self.scene.get_obj_pos(self.pushed_box)[:2]  # - robot_pos
+        box_quat = self.scene.get_obj_quat(self.pushed_box)[-1:]
 
-        target_pos = self.scene.get_obj_pos(self.target_box)
-        target_quat = self.scene.get_obj_quat(self.target_box)
+        target_pos = self.scene.get_obj_pos(self.target_box)[:2]
+        target_quat = self.scene.get_obj_quat(self.target_box)[-1:]
 
         env_state = np.concatenate(
             [
@@ -350,7 +357,8 @@ class Push_Cube_Env(GymEnvWrapper):
         box_goal_pos_dist_reward = -3.5 * np.linalg.norm(box_pos - target_pos)
         box_goal_rot_dist_reward = -rotation_distance(box_quat, target_quat) / np.pi
 
-        return box_goal_rot_dist_reward + box_goal_pos_dist_reward
+        # return box_goal_rot_dist_reward + box_goal_pos_dist_reward
+        return box_goal_pos_dist_reward
 
     def _check_early_termination(self) -> bool:
 

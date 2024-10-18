@@ -8,7 +8,7 @@ import torch
 import pickle
 import numpy as np
 from tqdm import tqdm
-
+from .geo_transform import quat2euler
 from environments.dataset.base_dataset import TrajectoryDataset
 from agents.utils.sim_path import sim_framework_path
 
@@ -65,11 +65,11 @@ class PushCube_Dataset(TrajectoryDataset):
             # robot_c_pos = state_data[robot]['c_pos']
             # robot_c_quat = state_data[robot]['c_quat']
 
-            push_box_pos = state_data['pushed_box']['pos']
-            push_box_quat = state_data['pushed_box']['quat']
+            push_box_pos = state_data['pushed_box']['pos'][:,:2]
+            push_box_quat = np.tan(quat2euler(state_data['pushed_box']['quat'])[:, -1:])
 
-            target_box_pos = state_data['target_box']['pos']
-            target_box_quat = state_data['target_box']['quat']
+            target_box_pos = state_data['target_box']['pos'][:,:2]
+            target_box_quat = np.tan(quat2euler(state_data['target_box']['quat'])[:, -1:])
 
             # target_box_pos = np.zeros(push_box_pos.shape)
             # target_box_quat = np.zeros(push_box_quat.shape)
