@@ -6,7 +6,7 @@ import random
 import numpy as np
 import torch
 import wandb
-from envs.gym_stacking_env.gym_stacking.envs.stacking import CubeStacking_Env
+from environments.d3il.envs.gym_stacking_env.gym_stacking.envs.stacking import CubeStacking_Env
 
 from agents.utils.sim_path import sim_framework_path
 from simulation.base_sim import BaseSim

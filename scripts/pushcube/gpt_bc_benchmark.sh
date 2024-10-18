@@ -1,0 +1,9 @@
+python run.py --config-name=pushcube_config \
+              --multirun seed=0 \
+              agents=gpt_bc_agent \
+              agent_name=gpt_bc \
+              window_size=5 \
+              group=pushcube_gpt_bc_seeds \
+              simulation.n_cores=10 \
+              simulation.n_contexts=30 \
+              simulation.n_trajectories_per_context=16

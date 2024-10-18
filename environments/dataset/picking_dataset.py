@@ -82,8 +82,8 @@ class Picking_Dataset(TrajectoryDataset):
             green_target_quat= np.tan(quat2euler(env_state['state']['target_box']['quat'])[:, -1:])
             
             input_state = np.concatenate((robot_des_j_pos, robot_gripper, red_box_pos, red_box_quat,green_target_pos,green_target_quat), axis=-1)
-            # print(f"input_state shape: {input_state.shape}") 
-            # print(f"zero_obs shape: {zero_obs.shape}")       
+            print(f"input_state shape: {input_state.shape}") 
+            print(f"zero_obs shape: {zero_obs.shape}")       
 
             vel_state = robot_des_j_pos[1:] - robot_des_j_pos[:-1]
             # vel_state = (robot_des_j_pos[2:] - robot_des_j_pos[:-2]) / 2

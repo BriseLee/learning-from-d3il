@@ -27,7 +27,7 @@ def set_seed_everywhere(seed):
     random.seed(seed)
 
 
-@hydra.main(config_path="configs", config_name="picking_config.yaml")
+@hydra.main(config_path="configs", config_name="pushcube_config.yaml")
 def main(cfg: DictConfig) -> None:
 
     # if cfg.seed in [0, 1]:
@@ -42,8 +42,15 @@ def main(cfg: DictConfig) -> None:
     # init wandb logger and config from hydra path
     wandb.config = OmegaConf.to_container(cfg, resolve=True, throw_on_missing=True)
 
+    # run = wandb.init(
+    #     project=cfg.wandb.project,
+    #     entity=cfg.wandb.entity,
+    #     group=cfg.group,
+    #     mode="disabled",
+    #     config=wandb.config
+    # )
     run = wandb.init(
-        project=cfg.wandb.project,
+        project="test",
         entity=cfg.wandb.entity,
         group=cfg.group,
         mode="disabled",

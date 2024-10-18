@@ -2,7 +2,7 @@ import numpy as np
 import copy
 import time
 
-import sys
+
 import sys
 import os
 
@@ -300,6 +300,7 @@ class Block_Pick_Env(GymEnvWrapper):
 
     def start(self):
         self.scene.start()
+        print("we start scene")
 
         # reset view of the camera
         if self.scene.viewer is not None:
@@ -465,11 +466,19 @@ class Block_Pick_Env(GymEnvWrapper):
 
 
     def get_reward(self, if_sparse=False):
-        return 0
+        box_pos = self.scene.get_obj_pos(self.picked_box)[:2]
+        # box_quat = self.scene.get_obj_quat(self.picked_box)
+
+        target_pos = self.scene.get_obj_pos(self.target_box)[:2]
+        # target_quat = self.scene.get_obj_quat(self.target_box)
+        dis=np.linalg.norm(box_pos-target_pos)
+
+
+
         # if if_sparse:
         #     return 0
 
-        # robot_pos = self.robot_state()[:2]
+        robot_pos = self.robot_state()[:2]
 
         # box_1_pos = self.scene.get_obj_pos(self.push_box1)
         # box_2_pos = self.scene.get_obj_pos(self.push_box2)
@@ -511,19 +520,19 @@ class Block_Pick_Env(GymEnvWrapper):
         # else:
         #     return (-1) * (dis_robot_box_g + dis_gg) + self.reward_offset
 
-        dis_modes = np.array([dis_rr, dis_rg, dis_gr, dis_gg])
+        # dis_modes = np.array([dis_rr, dis_rg, dis_gr, dis_gg])
 
-        min_ind = np.argmin(dis_modes)
+        # min_ind = np.argmin(dis_modes)
 
-        # four modes: [rr, gg], [rg, gr], [gr, rg], [gg, rr]
-        min_dis = dis_modes[min_ind]
-        if self.bp_mode is None and min_dis <= self.target_min_dist:
-            self.bp_mode = min_ind
+        # # four modes: [rr, gg], [rg, gr], [gr, rg], [gg, rr]
+        # min_dis = dis_modes[min_ind]
+        # if self.bp_mode is None and min_dis <= self.target_min_dist:
+        #     self.bp_mode = min_ind
 
-        if min_ind == 0 or min_ind == 3:
-            return (-1) * (dis_rr + dis_gg)
-        else:
-            return (-1) * (dis_rg + dis_gr)
+        # if min_ind == 0 or min_ind == 3:
+        #     return (-1) * (dis_rr + dis_gg)
+        # else:
+        #     return (-1) * (dis_rg + dis_gr)
 
     def _check_early_termination(self) -> bool:
         # calculate the distance from end effector to object

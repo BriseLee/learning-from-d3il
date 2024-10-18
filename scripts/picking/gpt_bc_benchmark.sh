@@ -1,5 +1,5 @@
 python run.py --config-name=picking_config \
-              --multirun seed=0,1,2,3,4,5 \
+              --multirun seed=0 \
               agents=gpt_bc_agent \
               agent_name=gpt_bc \
               window_size=5 \

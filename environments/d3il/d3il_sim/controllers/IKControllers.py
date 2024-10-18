@@ -187,9 +187,9 @@ class CartPosQuatImpedenceController(
         target_cpos_acc = self.desired_c_pos - current_c_pos
 
         curr_quat = current_c_quat
-        print(f"Shape of curr_quat: {curr_quat.shape}")
+        # print(f"Shape of curr_quat: {curr_quat.shape}")
         
-        print(f"Shape of desired_quat: {self.desired_quat.shape}")
+        # print(f"Shape of desired_quat: {self.desired_quat.shape}")
 
 
         if np.linalg.norm(curr_quat - self.desired_quat) > np.linalg.norm(
