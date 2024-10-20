@@ -1,9 +1,10 @@
 python run.py --config-name=pushcube_config \
-              --multirun seed=0,1 \
+              --multirun seed=0 \
               agents=act_agent \
               agent_name=act \
               window_size=3 \
-              group=pushcube_act_seeds \
+              group=aligning_act_seeds \
               simulation.n_cores=30 \
-              simulation.n_contexts=30 \
-              simulation.n_trajectories_per_context=16
+              simulation.n_contexts=60 \
+              simulation.n_trajectories_per_context=8 \
+              agents.kl_loss_factor=0.01

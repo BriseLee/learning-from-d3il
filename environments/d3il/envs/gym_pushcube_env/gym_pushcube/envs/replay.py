@@ -4,6 +4,7 @@ import pickle
 import time
 import sys
 import os
+import matplotlib.pyplot as plt
 
 # Add project root directory to sys.path
 sys.path.append(os.path.abspath('/home/xueyinli/project/d3il'))
@@ -58,6 +59,11 @@ class BlockPickReplay:
         red_box_init_state_quat = init_state.get("pushed_box")["quat"]
         green_target_init_state = init_state.get("target_box")["pos"]
         green_target_init_state_quat = init_state.get("target_box")["quat"]
+        self.red_box_init_state = red_box_init_state
+        
+        state_data = self.recorded_data["state"]
+        pushed_box_data = state_data.get("pushed_box")
+        print(f"push box init pos:{pushed_box_data}")
 
         # Extract robot data from recorded state
         if "state" not in self.recorded_data:
@@ -75,6 +81,7 @@ class BlockPickReplay:
         )
         # picked_box.set_position(red_box_init_state['pos'], red_box_init_state.get('quat', [1, 0, 0, 0]))
         # target_box.set_position(green_target_init_state['pos'], green_target_init_state.get('quat', [1, 0, 0, 0]))
+        return self.red_box_init_state
         
         
         
@@ -109,6 +116,9 @@ class BlockPickReplay:
         # assert len(j_pos_data) == len(gripper_width_data), "Mismatch in recorded data lengths"
         pos_diff = []
         pos_real_diff = []
+        eef_xy_trajectory = []
+        pushed_box_xy_trajectory = []
+        push_real_box_xy_trajectory = []
         # Replay loop
         for i in range(len(j_pos_data)):
             # Set robot joint positions and gripper width from recorded data
@@ -120,13 +130,35 @@ class BlockPickReplay:
             # self.scene._set_obj_pos_and_quat( target_box_pos[i], target_box_quat[i],self.target_box)
             self.scene.next_step(log=False)
             time.sleep(0.01)  # Slow down replay for visualization
+            eef_xy_trajectory.append(robot_c_pos[i][:2])
+            pushed_box_xy_trajectory.append(pushed_box_pos[i][:2])
+            push_real_box_xy_trajectory.append(pushed_box_real_pos[:2])
             pos_diff.append(np.linalg.norm(pushed_box_pos[i][:2] - target_box_pos[i][:2]))
             pos_real_diff.append(np.linalg.norm(pushed_box_real_pos[:2] - target_box_pos[i][:2]))
+            target_box_pos_ph = target_box_pos[i] 
         pos_diff = np.array(pos_diff)
         pos_real_diff = np.array(pos_real_diff)
         print('minimum diff (x, y): ', np.min(pos_diff))
         print('minimum real diff (x, y): ', np.min(pos_real_diff))
         print('average diff: ', np.mean(pos_diff))
+        eef_xy_trajectory = np.array(eef_xy_trajectory)
+        pushed_box_xy_trajectory = np.array(pushed_box_xy_trajectory)
+        push_real_box_xy_trajectory = np.array(push_real_box_xy_trajectory)
+
+        # 绘制 XY 平面的轨迹
+        plt.figure()
+        plt.plot(eef_xy_trajectory[:, 0], eef_xy_trajectory[:, 1], label='EEF trajectory', linestyle='--', linewidth=1.5)
+        plt.plot(pushed_box_xy_trajectory[:, 0], pushed_box_xy_trajectory[:, 1], label='pushed box', linewidth=2)
+        plt.plot(push_real_box_xy_trajectory[:, 0], push_real_box_xy_trajectory[:, 1], label='pushed box', linestyle='-.',linewidth=2)
+        plt.scatter(target_box_pos_ph[0], target_box_pos_ph[1], color='red', label='target pos', marker='x', s=100)
+        plt.scatter(self.red_box_init_state[0], self.red_box_init_state[1], color='green', label='init push box pos', marker='x', s=100)
+        plt.xlabel('X pos (m)')
+        plt.ylabel('Y pos (m)')
+        plt.title('XY pos')
+        plt.legend()
+        plt.grid(True)
+        plt.show()
+
 
 if __name__ == "__main__":
     # Set up the simulation factory and create a scene
@@ -138,7 +170,7 @@ if __name__ == "__main__":
     robot = MjRobot(scene, xml_path="environments/d3il/models/mj/robot/panda_rod.xml")
     
     # Create a replay instance with the recorded data file path
-    replay_instance = BlockPickReplay(scene, robot, recorded_data_path="environments/dataset/data/pushcube/push_data/feedback_withoutforce/state/PushCube_002.pkl")
+    replay_instance = BlockPickReplay(scene, robot, recorded_data_path="environments/dataset/data/pushcube/push_data/feedback_withoutforce/state/PushCube_005.pkl")
     
     # Start the replay
     replay_instance.set_init()

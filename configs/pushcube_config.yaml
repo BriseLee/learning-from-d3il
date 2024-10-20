@@ -1,8 +1,8 @@
 defaults:
-  - agents: bc_agent
+  - agents: act_agent
 #  - override hydra/launcher: submitit_slurm
 
-agent_name: bc
+agent_name: act
 log_dir: logs/pushcube/
 
 train_data_path: environments/dataset/data/pushcube/train_files.pkl
@@ -17,10 +17,10 @@ hydra:
 
 # insert wandb here
 wandb:
-  entity: atalaydonat
+  entity: xueyinli
   project: test
 
-group: aligning_${agent_name}
+group: pushcube_${agent_name}
 
 seed: 42
 
@@ -37,7 +37,7 @@ n_embd: 72
 train_batch_size: 1024
 val_batch_size: 1024
 num_workers: 4
-device: 'cpu'
+device: 'cuda'
 epoch: 100
 eval_every_n_epochs: 1
 scale_data: True

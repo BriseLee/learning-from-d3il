@@ -45,7 +45,7 @@ n_embd: 72
 train_batch_size: 1024
 val_batch_size: 1024
 num_workers: 4
-device: 'cpu'
+device: 'cuda'
 epoch: 4
 eval_every_n_epochs: 2
 scale_data: True

@@ -2,7 +2,7 @@ import logging
 import multiprocessing as mp
 import os
 import random
-from envs.gym_avoiding_env.gym_avoiding.envs.avoiding import ObstacleAvoidanceEnv
+from environments.d3il.envs.gym_avoiding_env.gym_avoiding.envs.avoiding import ObstacleAvoidanceEnv
 
 import numpy as np
 import torch
@@ -59,13 +59,17 @@ class Avoiding_Sim(BaseSim):
             while not done:
 
                 obs = np.concatenate((pred_action[:2], obs))
-                print(f"pred_action shape: {pred_action.shape}")
-                print(f"obs shape: {obs.shape}")   
+                # print(f"pred_action shape: {pred_action.shape}")
+                # print(f"obs shape: {obs.shape}")   
 
                 pred_action = agent.predict(obs)
                 pred_action = pred_action[0] + obs[:2]
 
                 pred_action = np.concatenate((pred_action, fixed_z, [0, 1, 0, 0]), axis=0)
+                print(f"pred_action shape: {pred_action.shape}")
+                print(f"obs shape: {obs.shape}")  
+                print(f"pred_action: {pred_action}")
+                print(f"obs : {obs}")  
 
                 obs, reward, done, info = env.step(pred_action)
 

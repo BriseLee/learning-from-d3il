@@ -12,9 +12,9 @@ from environments.d3il.d3il_sim.utils import sim_path
 
 init_end_eff_pos = [0.525, -0.35, 0.25]
 
-box_pos = np.array([0.1, 0.15, 0.2])
-box_quat = [1, 0, 0, 0]
-target_pos = np.array([0.1, 0.05, 0.1])
+box_pos = np.array([0.1, 0.15, 0.13])
+box_quat = [0, 0, 0, 1]
+target_pos = np.array([0.1, 0.05, 0.13])
 target_quat = [0, 0, 0, 1]
 
 

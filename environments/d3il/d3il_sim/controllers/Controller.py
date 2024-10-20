@@ -255,6 +255,7 @@ class ModelBasedFeedforwardController(JointPDController):
         """
         super(ModelBasedFeedforwardController, self).getControl(robot)
         self.paramsLock.acquire()
+        
         qd_d = self.desired_joint_pos - robot.current_j_pos
         vd_d = self.desired_joint_vel - robot.current_j_vel
 

@@ -62,8 +62,8 @@ class PushCube_Dataset(TrajectoryDataset):
             
             robot_des_j_pos = state_data[robot]['des_j_pos']
 
-            # robot_c_pos = state_data[robot]['c_pos']
-            # robot_c_quat = state_data[robot]['c_quat']
+            robot_c_pos = state_data[robot]['c_pos']
+            robot_c_quat = state_data[robot]['c_quat']
 
             push_box_pos = state_data['pushed_box']['pos'][:,:2]
             push_box_quat = np.tan(quat2euler(state_data['pushed_box']['quat'])[:, -1:])

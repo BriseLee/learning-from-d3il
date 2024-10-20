@@ -87,7 +87,7 @@ class PushCube_Sim(BaseSim):
                         pred_action = np.concatenate((pred_action, [0, 1, 0, 0]), axis=0)
                         obs, reward, done, info = env.step(pred_action)
 
-                        des_robot_pos = pred_action[:3]
+                        des_robot_pos = pred_action[:7]
 
                         robot_pos, bp_image, inhand_image = obs
 
@@ -110,9 +110,9 @@ class PushCube_Sim(BaseSim):
                         # obs = np.concatenate((obs))
                         obs = np.concatenate((pred_action, obs))
                         pred_action = agent.predict(obs)[0]
-                        # print(f"pred_action: {pred_action}")
-                        # print(f"obs shape: {obs.shape}")
-                        # print(f"obs: {obs}")
+                        print(f"pred_action: {pred_action}")
+                        print(f"obs shape: {obs.shape}")
+                        print(f"obs: {obs}")
                         pred_action[:7] = pred_action[:7] + obs[:7]
 
                         # pred_action = np.concatenate((pred_action), axis=0)

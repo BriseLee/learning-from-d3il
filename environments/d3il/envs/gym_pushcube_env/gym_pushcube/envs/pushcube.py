@@ -3,12 +3,11 @@ import numpy as np
 import copy
 
 from gym.spaces import Box
-
+from environments.d3il.d3il_sim.utils.geometric_transformation import euler2quat, quat2euler
 from environments.d3il.d3il_sim.utils.sim_path import d3il_path
 from environments.d3il.d3il_sim.core import Scene
 from environments.d3il.d3il_sim.core.logger import ObjectLogger, CamLogger
 from environments.d3il.d3il_sim.gyms.gym_env_wrapper import GymEnvWrapper
-from environments.d3il.d3il_sim.utils.geometric_transformation import euler2quat
 
 from environments.d3il.d3il_sim.sims.mj_beta.MjRobot import MjRobot
 from environments.d3il.d3il_sim.sims.mj_beta.MjFactory import MjFactory
@@ -60,11 +59,11 @@ class BlockContextManager:
         np.random.seed(seed)
 
         self.box_space = Box(
-            low=np.array([0.1, -0.25, -90]), high=np.array([0.1, 0.25, 90])#, seed=seed
+            low=np.array([0.1, -0.25, -90]), high=np.array([0.4, 0.25, 90])#, seed=seed
         )
 
         self.target_space = Box(
-            low=np.array([0.2, -0.3, -90]), high=np.array([0.2, 0.35, 90])#, seed=seed
+            low=np.array([0.2, -0.35, -90]), high=np.array([0.4, 0.35, 90])#, seed=seed
         )
 
         # index = 0, push from inside
@@ -111,7 +110,7 @@ class BlockContextManager:
         pos, quat, target_pos, target_quat = context
 
         self.scene.set_obj_pos_and_quat(
-            [pos[0], pos[1], 0.1],
+            [pos[0], pos[1], 0.15],
             quat,
             obj_name="pushed_box",
         )
@@ -222,7 +221,7 @@ class Push_Cube_Env(GymEnvWrapper):
         tcp_quad = self.robot.current_c_quat
 
         return joint_pos
-        # return np.concatenate((tcp_pos, tcp_quad, gripper_width))
+        # return np.concatenate((joint_pos, tcp_pos, tcp_quad,))
 
     def get_observation(self) -> np.ndarray:
 
@@ -237,12 +236,13 @@ class Push_Cube_Env(GymEnvWrapper):
             inhand_image = cv2.cvtColor(inhand_image, cv2.COLOR_RGB2BGR)
 
             return joint_pos,bp_image, inhand_image
-
+#to do quat?
         box_pos = self.scene.get_obj_pos(self.pushed_box)[:2]  # - robot_pos
-        box_quat = self.scene.get_obj_quat(self.pushed_box)[-1:]
+        box_quat = np.tan(quat2euler(self.scene.get_obj_quat(self.pushed_box))[-1:])
 
         target_pos = self.scene.get_obj_pos(self.target_box)[:2]
-        target_quat = self.scene.get_obj_quat(self.target_box)[-1:]
+        target_quat = np.tan(quat2euler(self.scene.get_obj_quat(self.target_box))[-1:])
+        
 
         env_state = np.concatenate(
             [

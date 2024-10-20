@@ -11,7 +11,7 @@ random.seed(42)
 train_files = []
 eval_files = []
 
-all_data = os.listdir("push_data/feedback_withoutforce/state")
+all_data = os.listdir("/home/xueyinli/project/d3il/environments/dataset/data/pushcube/push_data/feedback_withoutforce/state/")
 
 random.shuffle(all_data)
 
@@ -26,3 +26,5 @@ with open("train_files.pkl", "wb") as f:
 
 with open("eval_files.pkl", "wb") as f:
     pickle.dump(eval_files, f)
+
+print("finish")

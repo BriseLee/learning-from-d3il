@@ -47,6 +47,8 @@ class ObstacleAvoidanceManager:
 
     def start(self):
         pass
+    def sample(self):
+        pass
 
 
 class ObstacleAvoidanceEnv(GymEnvWrapper):
