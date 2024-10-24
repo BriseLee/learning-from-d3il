@@ -25,6 +25,7 @@ test_contexts = []
 for i in range(60):
 
     context = env.manager.sample()
+    # print(f"context:{context}")
     test_contexts.append(context)
 
 with open("test_contexts.pkl", "wb") as f:
@@ -36,16 +37,16 @@ file_lists = np.load("train_files.pkl", allow_pickle=True)
 
 train_contexts = []
 
-for file in file_lists[:60]:
+for file in file_lists[:10]:
 
     arr = np.load("/home/xueyinli/project/d3il/environments/dataset/data/avoiding/data/" + file, allow_pickle=True,)
-    print((arr))
-    # if "context" in arr:
-    #     train_contexts.append(arr["context"])
-    # else:
-        # print(f"Missing 'context' key in: {arr}")
+    print(f"arr:{arr}")
+    if "context" in arr:
+        train_contexts.append(arr["context"])
+    else:
+        print(f"Missing 'context' key in: {arr}")
 
-    train_contexts.append(arr["context"])
+    # train_contexts.append(arr["context"])
 
 with open("train_contexts.pkl", "wb") as f:
     pickle.dump(train_contexts, f)

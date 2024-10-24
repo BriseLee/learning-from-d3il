@@ -3,8 +3,10 @@ import os
 
 import multiprocessing as mp
 import random
+import sys
+sys.path.append(os.path.abspath('/home/xueyinli/project/d3il'))
 from environments.d3il.envs.gym_pushcube_env.gym_pushcube.envs.pushcube import Push_Cube_Env
-
+from environments.d3il.d3il_sim.utils.geometric_transformation import euler2quat, quat2euler
 import numpy as np
 import torch
 import wandb
@@ -66,6 +68,7 @@ class PushCube_Sim(BaseSim):
                 # obs = env.reset(random=False, context=test_contexts[context])
 
                 # obs = env.reset()
+                print(f"test_contexts[context]: {test_contexts[context]}")
                 obs = env.reset(random=False, context=test_contexts[context])
 
                 # test contexts
@@ -102,22 +105,44 @@ class PushCube_Sim(BaseSim):
 
                 else:
 
+
                     pred_action = env.robot_state()
+                    pred_action_aim=[]
+                    pred_action_final=[]
+                    obs_new = []
                     done = False
+                    z=0.28
                     while not done:
 #TO DO change something
-                        
-                        # obs = np.concatenate((obs))
-                        obs = np.concatenate((pred_action, obs))
-                        pred_action = agent.predict(obs)[0]
+                        # pred_action=pred_action[:6].flatten()
+                        pred_action=pred_action[:2].flatten()
+                        # obs_new = np.concatenate((pred_action[:3],[0,1,0,0], obs))
+                        obs_new = np.concatenate((pred_action, obs))
+                        # print(f"pred_action first: {pred_action}")
+                        print(f"obs: {obs_new}")
+                        # print(f"predict obs first: {agent.predict(obs_new)}")
+                        pred_action = agent.predict(obs_new)
                         print(f"pred_action: {pred_action}")
-                        print(f"obs shape: {obs.shape}")
-                        print(f"obs: {obs}")
-                        pred_action[:7] = pred_action[:7] + obs[:7]
+                        # print(f"obs shape: {obs.shape}")
+                        
+                        # TODO: Ask david
+                        pred_action = pred_action[:2]+obs_new[:2]
+                        # pred_action = pred_action[:2]
+                        pred_action = pred_action.flatten()
+                        pred_action_aim = np.concatenate((pred_action, np.array([z])))
+                        # pred_action_aim = pred_action.flatten()
+                        # print(f"pred_action aim: {pred_action_aim}")
+                        # pred_quat = euler2quat(pred_action_aim[3:6]).flatten()
+                        pred_action_final = np.concatenate((pred_action_aim[:3],[0,1,0,0]), axis=0)
+                        # pred_action_final = np.concatenate((pred_action_aim[:3],pred_quat), axis=0)
+
+                        # pred_action_final = pred_action_aim
+                        # print(f"pred_action final: {pred_action_final}")
+
 
                         # pred_action = np.concatenate((pred_action), axis=0)
 
-                        obs, reward, done, info = env.step(pred_action)
+                        obs, reward, done, info = env.step(pred_action_final)
 
                 mode_encoding[context, i] = torch.tensor(info['mode'])
                 successes[context, i] = torch.tensor(info['success'])

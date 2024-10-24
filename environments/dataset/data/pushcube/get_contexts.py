@@ -25,6 +25,7 @@ test_contexts = []
 for i in range(60):
 
     context = env.manager.sample()
+    print(f"test context:{context}")
     test_contexts.append(context)
 
 with open("test_contexts.pkl", "wb") as f:
@@ -36,16 +37,25 @@ file_lists = np.load("train_files.pkl", allow_pickle=True)
 
 train_contexts = []
 
-for file in file_lists[:60]:
+for file in file_lists:
 
     arr = np.load("/home/xueyinli/project/d3il/environments/dataset/data/pushcube/push_data/feedback_withoutforce/state/" + file, allow_pickle=True,)
-    print((arr))
+    print((f"arr:{arr}"))
+    
     if "context" in arr:
         train_contexts.append(arr["context"])
     else:
-        print(f"Missing 'context' key in: {arr}")
+        pushed_pos = arr['init_state']['pushed_box']['pos']
+        pushed_quat = arr['init_state']['pushed_box']['quat']
+        target_pos = arr['init_state']['target_box']['pos']
+        target_quat = arr['init_state']['target_box']['quat']
+        
+        # Concatenate them as a context vector
+        context = np.concatenate((pushed_pos, pushed_quat, target_pos, target_quat), axis=0)
+        print(f"context:{context}")
 
-    # train_contexts.append(arr["context"])
+
+        train_contexts.append(context)
 
 with open("train_contexts.pkl", "wb") as f:
     pickle.dump(train_contexts, f)

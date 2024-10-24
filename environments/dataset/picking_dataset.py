@@ -84,8 +84,9 @@ class Picking_Dataset(TrajectoryDataset):
             input_state = np.concatenate((robot_des_j_pos, robot_gripper, red_box_pos, red_box_quat,green_target_pos,green_target_quat), axis=-1)
             print(f"input_state shape: {input_state.shape}") 
             print(f"zero_obs shape: {zero_obs.shape}")       
+            robot_state = np.concatenate((robot_des_j_pos,robot_gripper),axis=1)
 
-            vel_state = robot_des_j_pos[1:] - robot_des_j_pos[:-1]
+            vel_state = robot_state[1:] - robot_state[:-1]
             # vel_state = (robot_des_j_pos[2:] - robot_des_j_pos[:-2]) / 2
             valid_len = len(input_state)-1
             # print(f"valid :{valid_len}")
@@ -94,7 +95,7 @@ class Picking_Dataset(TrajectoryDataset):
 
 
             zero_obs[0, :valid_len, :] = input_state[:-1]
-            zero_action[0, :valid_len, :] = np.concatenate((vel_state, robot_gripper[1:]), axis=-1)
+            zero_action[0, :valid_len, :] = vel_state
             zero_mask[0, :valid_len] = 1
 
             inputs.append(zero_obs)

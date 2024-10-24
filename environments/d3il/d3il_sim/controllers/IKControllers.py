@@ -184,6 +184,7 @@ class CartPosQuatImpedenceController(
         qd_d = np.zeros(q.shape)
 
         [current_c_pos, current_c_quat] = robot.getForwardKinematics(q)
+        # print(f"curren c{current_c_pos}, desired c{self.desired_c_pos}")
         target_cpos_acc = self.desired_c_pos - current_c_pos
 
         curr_quat = current_c_quat

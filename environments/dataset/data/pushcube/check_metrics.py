@@ -34,10 +34,10 @@ for file in all_data:
     # arr = np.load("/home/xueyinli/project/d3il/environments/dataset/data/picking/pick_data/feedback_withoutforce/state/" + file, allow_pickle=True,)
     with open("/home/xueyinli/project/d3il/environments/dataset/data/picking/pushcube/push_data/feedback_withoutforce/state/"+ file, "rb") as f:
         arr = np.load(f)
-    lengths.append(len(arr['panda_robot']['des_j__pos']))
+    lengths.append(len(arr['panda_robot']['des_j_pos']))
 
-    red_box_pos = arr['picked_box']['pos'][-1, :2]
-    red_box_quat = arr['picked_box']['quat']
+    red_box_pos = arr['pushed_box']['pos'][-1, :2]
+    red_box_quat = arr['pushed_box']['quat']
 
     green_target_pos = arr['target_box']['pos'][-1, :2]
 #

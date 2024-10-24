@@ -1,8 +1,8 @@
 defaults:
-  - agents: act_agent
+  - agents: bc_agent
 #  - override hydra/launcher: submitit_slurm
 
-agent_name: act
+agent_name: bc
 log_dir: logs/avoiding/
 
 data_directory: environments/dataset/data/avoiding/data

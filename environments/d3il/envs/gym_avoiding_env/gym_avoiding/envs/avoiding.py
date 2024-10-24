@@ -118,8 +118,10 @@ class ObstacleAvoidanceEnv(GymEnvWrapper):
 
     def get_observation(self) -> np.ndarray:
         robot_c_pos = self.robot_state()[:2]
-        return robot_c_pos.astype(np.float32)
-
+        # return robot_c_pos.astype(np.float32)
+        flattened_pos = np.concatenate([np.array(part, dtype=np.float32).flatten() for part in robot_c_pos])
+        return flattened_pos
+    
     def start(self):
         self.scene.start()
 

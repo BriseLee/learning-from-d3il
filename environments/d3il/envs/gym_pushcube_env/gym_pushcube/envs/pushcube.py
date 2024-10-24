@@ -53,17 +53,17 @@ class BPCageCam(MjCamera):
 
 
 class BlockContextManager:
-    def __init__(self, scene, index=0, seed=42) -> None:
+    def __init__(self, scene, index=1, seed=42) -> None:
         self.scene = scene
 
         np.random.seed(seed)
 
         self.box_space = Box(
-            low=np.array([0.1, -0.25, -90]), high=np.array([0.4, 0.25, 90])#, seed=seed
+            low=np.array([0.3, -0.35, -90]), high=np.array([0.6, 0.35, 90])#, seed=seed
         )
 
         self.target_space = Box(
-            low=np.array([0.2, -0.35, -90]), high=np.array([0.4, 0.35, 90])#, seed=seed
+            low=np.array([0.3, -0.35, -90]), high=np.array([0.6, 0.35, 90])#, seed=seed
         )
 
         # index = 0, push from inside
@@ -72,51 +72,62 @@ class BlockContextManager:
 
     def start(self, random=True, context=None):
 
-        if random:
-            self.context = self.sample()
-        else:
-            self.context = context
+        # if random:
+        #     self.context = self.sample()
+        # else:
+        #     self.context = context
+        
+        self.context = self.sample()
 
         self.set_context(self.context)
 
         pos, quat, target_pos, target_quat = self.context
 
         return target_pos, target_quat
+        return pos, quat,target_pos, target_quat
 
     def sample(self):
+        while True:
 
-        pos = self.box_space.sample()
+            pos = self.box_space.sample()
+            goal_angle = [0, 0, pos[-1] * np.pi / 180]
+            quat = euler2quat(goal_angle)
 
-        goal_angle = [0, 0, pos[-1] * np.pi / 180]
-        quat = euler2quat(goal_angle)
+            # target_pos = self.target_space.sample()
+            target_pos = [0.5,0.25,0.13]
+            # target_angle = [0, 0, target_pos[-1] * np.pi / 180]
+            target_angle = [0,0,45* np.pi / 180]
+            target_quat = euler2quat(target_angle)
+            
 
-        target_pos = self.target_space.sample()
-        target_angle = [0, 0, target_pos[-1] * np.pi / 180]
-        target_quat = euler2quat(target_angle)
+            distance = np.linalg.norm(np.array(pos[:2]) - np.array(target_pos[:2]))
+        
+            if distance > 0.2:
+                break
 
         return [pos, quat, target_pos, target_quat]
 
-    def sample_target_pos(self):
+    # def sample_target_pos(self):
 
-        pos = self.target_space.sample()
+    #     pos = self.target_space.sample()
 
-        goal_angle = [0, 0, pos[-1] * np.pi / 180]
-        quat = euler2quat(goal_angle)
+    #     goal_angle = [0, 0, pos[-1] * np.pi / 180]
+    #     quat = euler2quat(goal_angle)
 
-        return [pos, quat]
+    #     return [pos, quat]
 
     def set_context(self, context):
 
         pos, quat, target_pos, target_quat = context
 
         self.scene.set_obj_pos_and_quat(
-            [pos[0], pos[1], 0.15],
+            [pos[0], pos[1], 0.16],
             quat,
             obj_name="pushed_box",
         )
 
         self.scene.set_obj_pos_and_quat(
-            [target_pos[0], target_pos[1], 0.15],
+            [target_pos[0], target_pos[1], 0.13],
             target_quat,
             obj_name="target_box",
         )
@@ -135,7 +146,7 @@ class Push_Cube_Env(GymEnvWrapper):
     def __init__(
         self,
         n_substeps: int = 35,
-        max_steps_per_episode: int = 400,
+        max_steps_per_episode: int = 800,
         debug: bool = False,
         random_env: bool = False,
         interactive: bool = False,
@@ -152,7 +163,8 @@ class Push_Cube_Env(GymEnvWrapper):
             scene,
             xml_path=d3il_path("./models/mj/robot/panda_rod.xml"),
         )
-        controller = robot.jointTrackingController
+        # controller = robot.jointTrackingController
+        controller = robot.cartesianPosQuatTrackingController
 
         super().__init__(
             scene=scene,
@@ -201,10 +213,10 @@ class Push_Cube_Env(GymEnvWrapper):
         for _, v in self.cam_dict.items():
             scene.add_logger(v)
 
-        self.pos_min_dist = 0.01
+        self.pos_min_dist = 0.009
         self.rot_min_dist = 0.048
 
-        self.robot_box_dist = 0.051
+        self.robot_box_dist = 0.030
 
         self.first_visit = -1
     
@@ -217,15 +229,18 @@ class Push_Cube_Env(GymEnvWrapper):
         joint_vel = self.robot.current_j_vel
         gripper_width = np.array([self.robot.gripper_width])
 
-        tcp_pos = self.robot.current_c_pos
-        tcp_quad = self.robot.current_c_quat
+        tcp_pos = self.robot.current_c_pos[:2]
+        tcp_quat = self.robot.current_c_quat
+        euler_c_angles = quat2euler(tcp_quat)
 
-        return joint_pos
-        # return np.concatenate((joint_pos, tcp_pos, tcp_quad,))
+        return tcp_pos
+        # return np.concatenate((tcp_pos,tcp_quat))
 
     def get_observation(self) -> np.ndarray:
 
-        joint_pos = self.robot_state()
+        # joint_pos = self.robot_state()
+        tcp_pos = self.robot_state()
+        tcp_quat = self.robot.current_c_quat
 
         if self.if_vision:
 
@@ -235,22 +250,24 @@ class Push_Cube_Env(GymEnvWrapper):
             inhand_image = self.inhand_cam.get_image(depth=False)
             inhand_image = cv2.cvtColor(inhand_image, cv2.COLOR_RGB2BGR)
 
-            return joint_pos,bp_image, inhand_image
+            return tcp_pos,bp_image, inhand_image
 #to do quat?
         box_pos = self.scene.get_obj_pos(self.pushed_box)[:2]  # - robot_pos
-        box_quat = np.tan(quat2euler(self.scene.get_obj_quat(self.pushed_box))[-1:])
+        box_quat = quat2euler(self.scene.get_obj_quat(self.pushed_box))[-1:]
+        print(f"box quat: {box_quat}")
 
         target_pos = self.scene.get_obj_pos(self.target_box)[:2]
-        target_quat = np.tan(quat2euler(self.scene.get_obj_quat(self.target_box))[-1:])
-        
+        target_quat = quat2euler(self.scene.get_obj_quat(self.target_box))[-1:]
+        euler_c_angles = quat2euler(tcp_quat)
 
         env_state = np.concatenate(
             [
-                # joint_pos,
+                
+                
                 box_pos,
                 box_quat,
-                target_pos,
-                target_quat
+                # target_pos,
+                # target_quat
             ]
         )
 
@@ -333,7 +350,7 @@ class Push_Cube_Env(GymEnvWrapper):
 
         robot_box_dist = np.linalg.norm(box_pos[:2] - robot_pos[:2])
 
-        if robot_box_dist < self.robot_box_dist:
+        if robot_box_dist < self.robot_box_dist :
             mode = 0
         else:
             mode = 1
@@ -362,18 +379,19 @@ class Push_Cube_Env(GymEnvWrapper):
 
     def _check_early_termination(self) -> bool:
 
-        box_pos = self.scene.get_obj_pos(self.pushed_box)
+        box_pos = self.scene.get_obj_pos(self.pushed_box)[:2]
         box_quat = self.scene.get_obj_quat(self.pushed_box)
 
-        target_pos = self.scene.get_obj_pos(self.target_box)
+        target_pos = self.scene.get_obj_pos(self.target_box)[:2]
         target_quat = self.scene.get_obj_quat(self.target_box)
 
         box_goal_pos_dist = np.linalg.norm(box_pos - target_pos)
         box_goal_rot_dist = rotation_distance(box_quat, target_quat) / np.pi
 
-        if (box_goal_pos_dist <= self.pos_min_dist) and (
-            box_goal_rot_dist <= self.rot_min_dist
-        ):
+        if (box_goal_pos_dist <= self.pos_min_dist) :
+        #     if (box_goal_pos_dist <= self.pos_min_dist) and (
+        #     box_goal_rot_dist <= self.rot_min_dist
+        # ):
             # terminate if end effector is close enough
             self.terminated = True
             return True

@@ -224,7 +224,7 @@ class Robot_Push_Env(GymEnvWrapper):
 
         env_state = np.concatenate(
             [
-                robot_pos,
+                # robot_pos,
                 box_pos,
                 box_quat,
                 target_pos,

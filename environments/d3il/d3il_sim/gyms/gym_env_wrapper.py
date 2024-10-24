@@ -81,6 +81,7 @@ class GymEnvWrapper(gym.Env, ABC):
         # action = np.concatenate((action, [0.12, 0, 1, 0, 0]))
 
         self.controller.setSetPoint(action)
+        # print(f"controller:{self.controller}")
         self.controller.executeControllerTimeSteps(
             self.robot, self.n_substeps, block=False
         )
@@ -174,7 +175,9 @@ class GymEnvWrapper(gym.Env, ABC):
         tcp_vel = self.robot.current_c_vel
         tcp_quad = self.robot.current_c_quat
 
-        return  tcp_pos
+        return tcp_pos
+
+        return np.concatenate([tcp_pos, tcp_quad])
 
         # return np.concatenate(
         #     [

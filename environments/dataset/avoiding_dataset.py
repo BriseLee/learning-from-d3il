@@ -53,8 +53,8 @@ class Avoiding_Dataset(TrajectoryDataset):
             # robot and box posistion
             robot_des_pos = env_state['robot']['des_c_pos'][:, :2]
             robot_c_pos = env_state['robot']['c_pos'][:, :2]
-            print(f"des_pos:{robot_des_pos}")
-            print(f"c_pos:{robot_c_pos}")
+            # print(f"des_pos:{robot_des_pos}")
+            # print(f"c_pos:{robot_c_pos}")
 
             input_state = np.concatenate((robot_des_pos, robot_c_pos), axis=-1)
 

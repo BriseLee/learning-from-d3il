@@ -51,6 +51,7 @@ class Avoiding_Sim(BaseSim):
             obs = env.reset()
 
             pred_action = env.robot_state()
+
             fixed_z = pred_action[2:]
             done = False
 
@@ -58,18 +59,23 @@ class Avoiding_Sim(BaseSim):
 
             while not done:
 
-                obs = np.concatenate((pred_action[:2], obs))
+                # obs = np.concatenate((pred_action[:2], obs))
+                print(f"pred_action[:2]: {pred_action[:2]}")
+                pred_action_part = np.array(pred_action[:2], dtype=np.float32)
+                obs = np.array(obs, dtype=np.float32)
+                obs = np.concatenate((pred_action_part, obs))
+
                 # print(f"pred_action shape: {pred_action.shape}")
                 # print(f"obs shape: {obs.shape}")   
 
                 pred_action = agent.predict(obs)
                 pred_action = pred_action[0] + obs[:2]
 
-                pred_action = np.concatenate((pred_action, fixed_z, [0, 1, 0, 0]), axis=0)
-                print(f"pred_action shape: {pred_action.shape}")
-                print(f"obs shape: {obs.shape}")  
-                print(f"pred_action: {pred_action}")
-                print(f"obs : {obs}")  
+                pred_action = np.concatenate((pred_action[:2], fixed_z, [0, 1, 0, 0]), axis=0)
+                # print(f"pred_action shape: {pred_action.shape}")
+                # print(f"obs shape: {obs.shape}")  
+                # print(f"pred_action: {pred_action}")
+                # print(f"obs : {obs}")  
 
                 obs, reward, done, info = env.step(pred_action)
 

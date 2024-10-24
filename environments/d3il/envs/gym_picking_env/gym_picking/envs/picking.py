@@ -283,8 +283,8 @@ class Block_Pick_Env(GymEnvWrapper):
 
         env_state = np.concatenate(
             [
-                robot_pos,
-                gripper_width,
+                # robot_pos,
+                # gripper_width,
                 picked_box_pos,
                 picked_box_quat,
                 target_pos,
@@ -359,7 +359,7 @@ class Block_Pick_Env(GymEnvWrapper):
         # j_vel = action[7:14]
         gripper_width = action[-1]
 
-        if gripper_width > 0.075:
+        if gripper_width[0] > 0.075:
 
             self.robot.open_fingers()
 

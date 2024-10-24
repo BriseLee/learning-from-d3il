@@ -3,10 +3,13 @@ import numpy as np
 import random
 import pickle
 import gym
+import sys
 import gym_stacking
 
-env = gym.make('stacking-v0', max_steps_per_episode=1000, render=False)
-
+# env = gym.make('stacking-v0', max_steps_per_episode=1000, render=False)
+sys.path.append(os.path.abspath('/home/xueyinli/project/d3il'))
+from environments.d3il.envs.gym_stacking_env.gym_stacking.envs.stacking import CubeStacking_Env
+env = CubeStacking_Env
 random.seed(0)
 np.random.seed(0)
 

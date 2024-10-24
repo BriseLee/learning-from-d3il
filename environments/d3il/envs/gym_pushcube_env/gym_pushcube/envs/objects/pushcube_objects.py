@@ -10,11 +10,11 @@ from environments.d3il.d3il_sim.core.sim_object.sim_object import SimObject
 from environments.d3il.d3il_sim.sims.mj_beta.MjLoadable import MjXmlLoadable
 from environments.d3il.d3il_sim.utils import sim_path
 
-init_end_eff_pos = [0.525, -0.35, 0.25]
+init_end_eff_pos = [0.53,-0.09, 0.28]
 
-box_pos = np.array([0.1, 0.15, 0.13])
+box_pos = np.array([0.3, -0.35, 0.15])
 box_quat = [0, 0, 0, 1]
-target_pos = np.array([0.1, 0.05, 0.13])
+target_pos = np.array([0.35, -0.15, 0.15])
 target_quat = [0, 0, 0, 1]
 
 
@@ -50,7 +50,7 @@ class PushObject(SimObject, MjXmlLoadable):
 
 def get_obj_list():
 
-    push_box = PushObject(
+    pushed_box = PushObject(
         file_name="pushed_box.xml",
         object_name="pushed_box",
         pos=box_pos,
@@ -71,7 +71,7 @@ def get_obj_list():
         quat=[0,0,0,1]
     )
 
-    obj_list = [push_box, target_box , platform_box]
+    obj_list = [pushed_box, target_box , platform_box]
 
     return obj_list
 
