@@ -69,6 +69,7 @@ class PushCube_Dataset(TrajectoryDataset):
 
             push_box_pos = state_data['pushed_box']['pos'][:,:2]
             push_box_quat = quat2euler(state_data['pushed_box']['quat'])[:, -1:]
+            # push_box_quat = state_data['pushed_box']['quat']
 
             target_box_pos = state_data['target_box']['pos'][:,:2]
             target_box_quat = quat2euler(state_data['target_box']['quat'])[:, -1:]
@@ -80,6 +81,7 @@ class PushCube_Dataset(TrajectoryDataset):
 
             # input_state = np.concatenate((robot_des_j_pos, push_box_pos, push_box_quat, target_box_pos, target_box_quat), axis=-1)
             # input_state = np.concatenate((robot_c_pos, robot_c_quat, push_box_pos, push_box_quat, target_box_pos, target_box_quat), axis=-1)
+            # input_state = np.concatenate((robot_c_pos, push_box_pos, push_box_quat), axis=-1)
             input_state = np.concatenate((robot_c_pos, push_box_pos, push_box_quat), axis=-1)
             # robot_des_j_pos = np.array(robot_des_j_pos)
             # input_state = np.concatenate((robot_c_pos, euler_c_angles, push_box_pos, push_box_quat, target_box_pos, target_box_quat), axis=-1)
@@ -87,11 +89,11 @@ class PushCube_Dataset(TrajectoryDataset):
             # robot_des_c_quat = np.array(robot_c_quat)
             # vel_state = robot_des_c_pos[1:]-robot_des_c_pos[:-1]
             # vel_state = robot_des_j_pos[1:]-robot_des_j_pos[:-1]
-            vel_state = robot_c_pos[1:] - robot_c_pos[:-1]  
+            # vel_state = robot_c_pos[1:] - robot_c_pos[:-1]
             # euler_c_delta = euler_c_angles[1:] - euler_c_angles[:-1]  
             # vel_state = np.concatenate((robot_c_pos, robot_c_quat), axis=1)
             # vel_state = np.concatenate((pos_state, euler_c_delta), axis=1)
-            # vel_state = robot_des_c_pos[1:]-robot_des_c_pos[:-1]
+            vel_state = robot_c_pos[1:]-robot_des_c_pos[:-1]
           
             valid_len = len(input_state)-1
             # print(f"valid {valid_len}")

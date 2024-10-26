@@ -22,7 +22,7 @@ np.random.seed(2)
 
 
 test_contexts = []
-for i in range(60):
+for i in range(80):
 
     context = env.manager.sample()
     print(f"test context:{context}")

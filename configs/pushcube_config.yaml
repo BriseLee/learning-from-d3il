@@ -43,7 +43,7 @@ eval_every_n_epochs: 1
 scale_data: True
 
 # Environment
-obs_dim: 5   #7+3   
+obs_dim: 5   #7+3   #simple: 2+2+4
 action_dim: 2
 max_len_data: 10000
 window_size: 1
@@ -73,4 +73,4 @@ simulation:
   render: True
   n_cores: 1
   n_contexts: 1
-  n_trajectories_per_context: 8
+  n_trajectories_per_context: 10

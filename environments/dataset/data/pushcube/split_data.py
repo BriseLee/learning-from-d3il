@@ -16,7 +16,7 @@ all_data = os.listdir("/home/xueyinli/project/d3il/environments/dataset/data/pus
 random.shuffle(all_data)
 
 # num_split = int(len(all_data) * 0.1)
-num_split = 90
+num_split = 80
 
 train_files += all_data[num_split:]
 eval_files += all_data[:num_split]

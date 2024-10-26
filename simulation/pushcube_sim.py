@@ -147,6 +147,7 @@ class PushCube_Sim(BaseSim):
                 mode_encoding[context, i] = torch.tensor(info['mode'])
                 successes[context, i] = torch.tensor(info['success'])
                 mean_distance[context, i] = torch.tensor(info['mean_distance'])
+               
 
     ################################
     # we use multi-process for the simulation

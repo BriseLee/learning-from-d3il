@@ -59,11 +59,11 @@ class BlockContextManager:
         np.random.seed(seed)
 
         self.box_space = Box(
-            low=np.array([0.3, -0.35, -90]), high=np.array([0.6, 0.35, 90])#, seed=seed
+            low=np.array([0.3, -0.3, -90]), high=np.array([0.6, 0.3, 90])#, seed=seed
         )
 
         self.target_space = Box(
-            low=np.array([0.3, -0.35, -90]), high=np.array([0.6, 0.35, 90])#, seed=seed
+            low=np.array([0.3, -0.3, -90]), high=np.array([0.6, 0.3, 90])#, seed=seed
         )
 
         # index = 0, push from inside
@@ -96,13 +96,17 @@ class BlockContextManager:
             # target_pos = self.target_space.sample()
             target_pos = [0.5,0.25,0.13]
             # target_angle = [0, 0, target_pos[-1] * np.pi / 180]
-            target_angle = [0,0,45* np.pi / 180]
-            target_quat = euler2quat(target_angle)
+            target_angle = [0,0,135* np.pi / 180]
+            # target_quat = euler2quat(target_angle)
+            target_quat = [-0.48717451 , 0.0    ,      0.0     ,   -0.87330464]
+
+            init_end_eff_pos = [0.53,-0.09, 0.28]
             
 
-            distance = np.linalg.norm(np.array(pos[:2]) - np.array(target_pos[:2]))
+            distance1 = np.linalg.norm(np.array(pos[:2]) - np.array(target_pos[:2]))
+            # distance2 = np.linalg.norm(np.array(pos[:2]) - np.array(init_end_eff_pos[:2]))
         
-            if distance > 0.2:
+            if distance1 > 0.2 :
                 break
 
         return [pos, quat, target_pos, target_quat]
@@ -214,7 +218,7 @@ class Push_Cube_Env(GymEnvWrapper):
             scene.add_logger(v)
 
         self.pos_min_dist = 0.009
-        self.rot_min_dist = 0.048
+        self.rot_min_dist = 0.015
 
         self.robot_box_dist = 0.030
 
@@ -254,6 +258,7 @@ class Push_Cube_Env(GymEnvWrapper):
 #to do quat?
         box_pos = self.scene.get_obj_pos(self.pushed_box)[:2]  # - robot_pos
         box_quat = quat2euler(self.scene.get_obj_quat(self.pushed_box))[-1:]
+        # box_quat = self.scene.get_obj_quat(self.pushed_box)
         print(f"box quat: {box_quat}")
 
         target_pos = self.scene.get_obj_pos(self.target_box)[:2]
@@ -356,8 +361,7 @@ class Push_Cube_Env(GymEnvWrapper):
             mode = 1
 
         # mean_distance = 0.5 * (box_goal_pos_dist + box_goal_rot_dist)
-        mean_distance = box_goal_pos_dist
-
+        mean_distance = box_goal_pos_dist 
         return mode, mean_distance
 
     def get_reward(self, if_sparse=False):
@@ -388,10 +392,10 @@ class Push_Cube_Env(GymEnvWrapper):
         box_goal_pos_dist = np.linalg.norm(box_pos - target_pos)
         box_goal_rot_dist = rotation_distance(box_quat, target_quat) / np.pi
 
-        if (box_goal_pos_dist <= self.pos_min_dist) :
-        #     if (box_goal_pos_dist <= self.pos_min_dist) and (
-        #     box_goal_rot_dist <= self.rot_min_dist
-        # ):
+        # if (box_goal_pos_dist <= self.pos_min_dist) :
+        if (box_goal_pos_dist <= self.pos_min_dist) and (
+            box_goal_rot_dist <= self.rot_min_dist
+        ):
             # terminate if end effector is close enough
             self.terminated = True
             return True

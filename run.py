@@ -50,7 +50,7 @@ def main(cfg: DictConfig) -> None:
     #     config=wandb.config
     # )
     wandb.init(
-        project="test",
+        project="push_lockedeefandtarget",
         entity="xueyinli-karlsruhe-institute-of-technology",
         # mode="disabled",
         config=wandb.config
@@ -64,8 +64,8 @@ def main(cfg: DictConfig) -> None:
     # load the model performs best on the evaluation set
     agent.load_pretrained_model(agent.working_dir, sv_name=agent.eval_model_name)
     
-    # agent.load_pretrained_model("/home/xueyinli/project/d3il/logs/picking/runs/bc/2024-10-11/20-19-36", 
-                                # sv_name="last_bc.pth")
+    # agent.load_pretrained_model("/home/xueyinli/project/d3il/logs/picking/runs/bc/2024-10-25/20-07-06", 
+    #                             sv_name="last_bc.pth")
 
     # simulate the model
     env_sim = hydra.utils.instantiate(cfg.simulation)

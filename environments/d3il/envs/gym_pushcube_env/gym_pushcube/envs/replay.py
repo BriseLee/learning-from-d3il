@@ -14,7 +14,7 @@ from environments.d3il.d3il_sim.sims.mj_beta.MjRobot import MjRobot
 from environments.d3il.d3il_sim.sims.mj_beta.MjFactory import MjFactory
 from environments.d3il.d3il_sim.core import Scene
 from environments.d3il.envs.gym_pushcube_env.gym_pushcube.envs.objects.pushcube_objects import get_obj_list
-
+from environments.d3il.envs.gym_pushcube_env.gym_pushcube.envs.pushcube import rotation_distance
 obj_list = get_obj_list()
 pushed_box = obj_list[0]
 target_box = obj_list[1]
@@ -116,6 +116,7 @@ class BlockPickReplay:
                 pushed_box_quat = pushed_box_data["quat"][self.index // self.skip_step]
                 print(f"pushed box pos {pushed_box_pos}")
                 target_box_pos = target_box_data["pos"][self.index // self.skip_step]
+                target_box_quat = target_box_data["quat"][self.index // self.skip_step]
 
                 self.robot.beam_to_joint_pos(j_pos_data[self.index // self.skip_step]) 
                 robot_c_pos = robot_data["c_pos"]
@@ -131,13 +132,16 @@ class BlockPickReplay:
                 target_box_real_quat = self.scene.get_obj_quat(obj_name="target_box")
                 self.push_real_box_xy_trajectory.append(pushed_box_real_pos[:2])   
                 box_goal_pos_dist = np.linalg.norm(pushed_box_pos[:2] - target_box_pos[:2])
+                rotationdistance = rotation_distance(pushed_box_quat,target_box_quat)/ np.pi
+
                 # if box_goal_pos_dist < 0.01:
                 #     print(f"perfect fit {box_goal_pos_dist}")
                 # else : 
                 #     print(f"nonono:{{box_goal_pos_dist}}")
                 box_quat = quat2euler(self.scene.get_obj_quat(self.pushed_box))
-                print(f"box quat: {box_quat}")
-                print(f"obj recorded quat{pushed_box_quat},obj real quat{pushed_box_real_quat},target quat{target_box_real_quat}")
+                print(f"target quat: {target_box_quat}")
+                # print(f"obj recorded quat{pushed_box_quat},obj real quat{pushed_box_real_quat},target quat{target_box_real_quat}")
+                print(f" quat distance: {rotationdistance}")
         self.index += 1    
         
     def trajectory(self):
@@ -174,7 +178,7 @@ if __name__ == "__main__":
     robot = MjRobot(scene, xml_path="environments/d3il/models/mj/robot/panda_rod.xml")
     
     # Create a replay instance with the recorded data file path
-    replay_instance = BlockPickReplay(scene, robot, recorded_data_path="environments/dataset/data/pushcube/push_data/feedback_withoutforce/state/PushCube_005.pkl")
+    replay_instance = BlockPickReplay(scene, robot, recorded_data_path="environments/dataset/data/pushcube/push_data/feedback_withoutforce/state/PushCube_059.pkl")
     
     # Start the replay
     replay_instance.set_init()

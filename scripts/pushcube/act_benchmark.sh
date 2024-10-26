@@ -1,8 +1,8 @@
 python run.py --config-name=pushcube_config \
-              --multirun seed=0,1 \
+              --multirun seed=0 \
               agents=act_agent \
               agent_name=act \
-              window_size=1 \
+              window_size=5 \
               group=pushcube_act_seeds \
               simulation.n_cores=30 \
               simulation.n_contexts=60 \
